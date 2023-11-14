@@ -1,0 +1,45 @@
+package  ${package.Mapper};
+
+import ${package.Entity}.${entity};
+import ${superMapperClassPackage};
+import org.apache.ibatis.annotations.Mapper;
+import org.apache.ibatis.annotations.Param;
+import com.baomidou.mybatisplus.core.metadata.IPage;
+import com.baomidou.mybatisplus.core.conditions.query.QueryWrapper;
+import com.baomidou.mybatisplus.core.toolkit.Constants;
+import com.baomidou.mybatisplus.extension.plugins.pagination.Page;
+import java.util.Map;
+
+/**
+ * <p>
+ * ${table.comment} Mapper 接口
+ * </p>
+ *
+ * @author ${author}
+ * @since ${date}
+ */
+@Mapper
+#if(${kotlin})
+interface ${table.mapperName} :${superMapperClass}<${entity}>
+#else
+public interface ${table.mapperName} extends ${superMapperClass}<${entity}> {
+
+    /**
+     * 分页查询-自定义sql-Wrapper
+     *
+     * @param page
+     * @param query
+     * @return: IPage<${entity}>
+    */
+    IPage<${entity}> selpageCustomSqlByWrapper(Page<${entity}> page, @Param(Constants.WRAPPER)QueryWrapper<${entity}> query);
+
+    /**
+     * 分页查询-自定义sql-Map
+     *
+     * @param page
+     * @param params
+     * @return: IPage<${entity}>
+    */
+    IPage<${entity}> selpageCustomSqlByMap(Page<${entity}> page, @Param("params") Map<String, String> params);
+}
+#end

@@ -1,0 +1,224 @@
+package ${package.Controller};
+
+import com.baomidou.mybatisplus.core.metadata.IPage;
+import org.springframework.beans.factory.annotation.Autowired;
+import java.util.*;
+import org.example.web.SimpleResponse;
+import org.springframework.web.bind.annotation.*;
+import org.springframework.web.multipart.MultipartFile;
+import jakarta.servlet.http.HttpServletRequest;
+import jakarta.servlet.http.HttpServletResponse;
+import ${package.Entity}.${entity};
+#if(${swagger2})
+import io.swagger.v3.oas.annotations.Operation;
+import io.swagger.v3.oas.annotations.tags.Tag;
+#end
+import ${package.Service}.${table.serviceName};
+
+
+#if(${restControllerStyle})
+import org.springframework.web.bind.annotation.RestController;
+#else
+import org.springframework.stereotype.Controller;
+#end
+#if(${superControllerClassPackage})
+import ${superControllerClassPackage};
+#end
+
+/**
+ * <p>
+ * ${table.comment} 前端控制器
+ * </p>
+ *
+ * @author ${author}
+ * @since ${date}
+ */
+#if(${restControllerStyle})
+@RestController
+#else
+@Controller
+#end
+#if(${swagger2})
+@Tag(name = "${table.comment}服务")
+#end
+#set($prePath=$cfg.prePath.toLowerCase())
+#set($entryLower=$entity.toLowerCase())
+@RequestMapping("#if(${cfg.prePath})/${prePath}#end/#if(${controllerMappingHyphenStyle})${controllerMappingHyphen}#else${entryLower}#end")
+#if(${kotlin})
+class ${table.controllerName}#if(${superControllerClass}) : ${superControllerClass}()#end
+#else
+#if(${superControllerClass})
+public class ${table.controllerName} extends ${superControllerClass} {
+#else
+public class ${table.controllerName} {
+#end
+    @Autowired
+    private ${table.serviceName} service;
+#foreach($field in ${table.fields})
+#if(${field.keyFlag})
+#set($keyPropertyName=${field.propertyName})
+#set($keyPropertyType=${field.propertyType})
+#set($keyPropertyNameLower=$keyPropertyName.toLowerCase())
+#end
+#end
+
+    @PostMapping
+    @ResponseBody
+#if(${swagger2})
+    @Operation(description = "创建${table.comment}")
+#end
+    public SimpleResponse save(@RequestBody ${entity} obj){
+        SimpleResponse response = new SimpleResponse();
+        try {
+            service.saveByParam(obj,obj.getParams());
+        } catch (Exception e) {
+            response.setCode(500);
+            response.setMessage(e.getMessage());
+        }
+        return response;
+    }
+
+    @PutMapping("/{${keyPropertyNameLower}}")
+    @ResponseBody
+#if(${swagger2})
+    @Operation(description = "更新${table.comment}")
+#end
+    public SimpleResponse update(@PathVariable(name = "${keyPropertyNameLower}") ${keyPropertyType} ${keyPropertyNameLower},@RequestBody ${entity} obj){
+        SimpleResponse response = new SimpleResponse();
+        try {
+            service.updateByParam(obj,obj.getParams());
+        } catch (Exception e) {
+            response.setCode(500);
+            response.setMessage(e.getMessage());
+        }
+        return response;
+    }
+
+    @DeleteMapping("/{${keyPropertyNameLower}}")
+    @ResponseBody
+#if(${swagger2})
+    @Operation(description = "按ID删除${table.comment}")
+#end
+    public SimpleResponse remove(@PathVariable(name = "${keyPropertyNameLower}") ${keyPropertyType} ${keyPropertyNameLower}){
+        SimpleResponse response = new SimpleResponse();
+        try {
+        service.removeById(${keyPropertyNameLower});
+        } catch (Exception e) {
+            response.setCode(500);
+            response.setMessage(e.getMessage());
+        }
+        return response;
+    }
+
+    @GetMapping("/{${keyPropertyNameLower}}")
+#if(${swagger2})
+    @Operation(description = "按ID查询${table.comment}")
+#end
+    @ResponseBody
+    public SimpleResponse select(@PathVariable(name = "${keyPropertyNameLower}") ${keyPropertyType} ${keyPropertyNameLower}) {
+        SimpleResponse response = new SimpleResponse();
+        try {
+            response.setData(service.getById(${keyPropertyNameLower}));
+        } catch (Exception e) {
+            response.setCode(500);
+            response.setMessage(e.getMessage());
+        }
+        return response;
+    }
+
+    @PostMapping("/dels")
+    @ResponseBody
+    @Operation(description = "按ID删除多个${table.comment}")
+    public SimpleResponse removes(@RequestBody List<${keyPropertyType}> ${keyPropertyNameLower}s){
+        SimpleResponse response = new SimpleResponse();
+        try {
+            service.removeByIds(${keyPropertyNameLower}s);
+        } catch (Exception e) {
+            response.setCode(500);
+            response.setMessage(e.getMessage());
+        }
+        return response;
+    }
+
+
+    @PostMapping("/delby")
+#if(${swagger2})
+    @Operation(description = "条件删除${table.comment}")
+#end
+    public void deleteBy(@RequestBody(required = false) Map<String, String> params) {
+        service.deleteBy(params);
+    }
+
+    @PostMapping("/selby")
+#if(${swagger2})
+#end
+    @ResponseBody
+    public List<${entity}> selectBy(@RequestBody(required = false) Map<String, String> params) {
+        return  service.selectBy(params);
+    }
+
+    @PostMapping("/selpage")
+#if(${swagger2})
+    @Operation(description = "分页查询${table.comment}")
+#end
+    @ResponseBody
+    public SimpleResponse selectPage(@RequestBody Map<String, String> params) {
+        SimpleResponse response = new SimpleResponse();
+        try {
+            IPage<${entity}> page = service.selectPage(params);
+            response.setData(page);
+        } catch (Exception e) {
+            response.setCode(500);
+            response.setMessage(e.getMessage());
+        }
+        return response;
+    }
+
+    @PostMapping("/selpageCustomSqlByWrapper")
+#if(${swagger2})
+#end
+    @ResponseBody
+    public IPage<${entity}> selpageCustomSqlByWrapper(@RequestBody Map<String, String> params) {
+        return service.selpageCustomSqlByWrapper(params);
+    }
+
+    @PostMapping("/selpageCustomSqlByMap")
+#if(${swagger2})
+    @Operation(description = "分页查询-自定义sql-Map${table.comment}")
+#end
+    @ResponseBody
+    public IPage<${entity}> selpageCustomSqlByMap(@RequestBody Map<String, String> params) {
+        return service.selpageCustomSqlByMap(params);
+    }
+
+    /**
+     * 下载excel模板
+     * @param response
+     * @param request
+     * @throws Exception
+     */
+    @PostMapping("/downloadExcelTemplate")
+    @ResponseBody
+    public void downloadExcelTemplate(HttpServletResponse response, HttpServletRequest request) throws Exception {
+        service.downloadExcelTemplate(response, request);
+    }
+
+    /**
+     * excel导入
+     * @param file
+     * @throws Exception
+     */
+    @PostMapping("/uploadExcel")
+    @ResponseBody
+    public void uploadExcel(@RequestParam MultipartFile file) throws Exception {
+        service.uploadExcel(file);
+    }
+
+    @PostMapping("/excel")
+    @ResponseBody
+    public void excel(HttpServletResponse response, HttpServletRequest request, @RequestBody Map<String, String> params) throws Exception {
+        service.excel(response, request, params);
+    }
+}
+
+#end

@@ -1,0 +1,164 @@
+package ${package.ServiceImpl};
+
+import ${package.Entity}.${entity};
+import ${package.Mapper}.${table.mapperName};
+import ${package.Service}.${table.serviceName};
+import ${superServiceImplClassPackage};
+import com.baomidou.mybatisplus.core.metadata.IPage;
+import com.baomidou.mybatisplus.core.conditions.query.QueryWrapper;
+import com.baomidou.mybatisplus.extension.plugins.pagination.Page;
+import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.jdbc.core.JdbcTemplate;
+import org.springframework.stereotype.Service;
+import org.apache.commons.lang3.StringUtils;
+import cn.afterturn.easypoi.excel.ExcelExportUtil;
+import cn.afterturn.easypoi.excel.entity.ExportParams;
+import org.apache.poi.ss.usermodel.Workbook;
+import jakarta.servlet.http.HttpServletRequest;
+import jakarta.servlet.http.HttpServletResponse;
+import org.springframework.web.multipart.MultipartFile;
+import com.google.common.collect.Lists;
+import cn.afterturn.easypoi.excel.entity.ImportParams;
+import cn.afterturn.easypoi.excel.imports.ExcelImportService;
+import java.io.ByteArrayInputStream;
+import java.io.InputStream;
+import org.example.utils.PageUtils;
+
+import java.util.List;
+import java.util.Map;
+
+/**
+ * <p>
+ * ${table.comment} 服务实现类
+ * </p>
+ *
+ * @author ${author}
+ * @since ${date}
+ */
+@Service
+#if(${kotlin})
+open class ${table.serviceImplName} : ${superServiceImplClass}<${table.mapperName}, ${entity}>(), ${table.serviceName} {
+
+}
+#else
+public class ${table.serviceImplName} extends ${superServiceImplClass}<${table.mapperName}, ${entity}> implements ${table.serviceName} {
+
+    @Override
+    public void saveByParam(${entity} obj,Map<String, String> params){
+        this.save(obj);
+    }
+
+    @Override
+    public void updateByParam(${entity} obj,Map<String, String> params){
+        this.updateById(obj);
+    }
+
+    @Override
+    public void deleteBy(Map<String, String> params) {
+        QueryWrapper<${entity}> query = new QueryWrapper<>();
+        if(!query.isEmptyOfWhere()) {
+            remove(query);
+        }
+    }
+
+    @Override
+    public List<${entity}> selectBy(Map<String, String> params) {
+        QueryWrapper<${entity}> query = new QueryWrapper<>();
+        return list(query);
+    }
+
+    @Override
+    public IPage<${entity}> selectPage(Map<String, String> params) {
+        Page<${entity}> page = PageUtils.pageHandler(params);
+        QueryWrapper<${entity}> query = getQuery(params);
+        IPage<${entity}> result = this.page(page, query);
+        return result;
+    }
+
+    @Override
+    public IPage<${entity}> selpageCustomSqlByWrapper(Map<String, String> params) {
+        Page<${entity}> page = PageUtils.pageHandler(params);
+        QueryWrapper<${entity}> query = getQuery(params);
+        IPage<${entity}> result = this.baseMapper.selpageCustomSqlByWrapper(page, query);
+        return result;
+    }
+
+    @Override
+    public IPage<${entity}> selpageCustomSqlByMap(Map<String, String> params) {
+        Page<${entity}> page = PageUtils.pageHandler(params);
+        IPage<${entity}> result = this.baseMapper.selpageCustomSqlByMap(page, params);
+        return result;
+    }
+
+    /**
+     * 下载excel模板
+     *
+     * @param response HttpServletResponse
+     * @param request  HttpServletRequest
+     * @return: void
+    */
+    @Override
+    public void downloadExcelTemplate(HttpServletResponse response, HttpServletRequest request) throws Exception{
+        List<${entity}> data = Lists.newArrayList();
+        Workbook workbook = ExcelExportUtil.exportExcel(new ExportParams(null, "${entity}"), ${entity}.class, data);
+        String fileName = String.format("${entity}_%d.xls", System.currentTimeMillis());
+        response.setHeader("Content-Disposition", "attachment;Filename="+ fileName);
+        response.setContentType("application/vnd.ms-excel;charset=UTF-8");
+        response.flushBuffer();
+        workbook.write(response.getOutputStream());
+    }
+
+    /**
+     * 导入数据
+     * @param file
+     * @throws Exception
+     */
+    @Override
+    public void uploadExcel(MultipartFile file) throws Exception {
+        InputStream inputStream = file.getInputStream();
+        ImportParams params = new ImportParams();
+        // bean 导入
+        List<${entity}> dataList = new ExcelImportService().importExcelByIs(inputStream, ${entity}.class, params, false).getList();
+        this.saveBatch(dataList);
+        // map 导入
+        // List<Map<String, Object>> maps = ExcelImportUtil.importExcel(inputStream, Map.class, params);
+        // System.out.println("maps = " + maps);
+    }
+
+    @Override
+    public void excel(HttpServletResponse response, HttpServletRequest request, Map<String, String> params) throws Exception{
+        QueryWrapper<${entity}> query = new QueryWrapper<>();
+        List<${entity}> data = list(query);
+        Workbook workbook = ExcelExportUtil.exportExcel(new ExportParams(null, "${entity}"),
+        ${entity}.class, data);
+        String fileName = String.format("${entity}_%d.xls", System.currentTimeMillis());
+        response.setHeader("Content-Disposition", "attachment;Filename="+ fileName);
+        response.setContentType("application/vnd.ms-excel;charset=UTF-8");
+        response.flushBuffer();
+        workbook.write(response.getOutputStream());
+    }
+
+    /**
+     * 定义数据查询条件
+     * @param params
+     * @return
+     */
+    private  QueryWrapper<${entity}> getQuery(Map<String, String> params){
+        QueryWrapper<${entity}> query  = new QueryWrapper<>();
+        if(params==null||params.size()<1) {
+            return  query;
+        }
+        for (Map.Entry<String, String> entry:params.entrySet()){
+            if(StringUtils.isBlank(entry.getValue())){
+                continue;
+            }
+#foreach($field in ${table.fields})
+            if("${field.propertyName}".equals(entry.getKey())){
+                query.eq("${field.name}",entry.getValue());
+            }
+#end
+        }
+        return  query;
+    }
+}
+#end

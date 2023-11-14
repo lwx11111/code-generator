@@ -1,0 +1,60 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!--
+  ~ http://www.inspur.com
+  ~
+  ~ Copyright (c) 2019 . 软件版权归浪潮软件集团-天元通信信息系统有限公司所有
+  -->
+
+<Configuration status="OFF" monitorInterval="30" packages="com.inspur.tinyframework.core.log">
+    <Properties>
+        <Property name="APP">ser-fsp-it</Property>
+        <Property name="PID">????</Property>
+        <Property name="LOG_EXCEPTION_CONVERSION_WORD">%xwEx</Property>
+        <Property name="LOG_LEVEL_PATTERN">%5p</Property>
+        <Property name="ELK_LOG_PATTERN_FULL">
+            %d{yyyy-MM-dd HH:mm:ss.SSS} ${LOG_LEVEL_PATTERN} %X{X-B3-TraceId} %X{X-B3-SpanId} %X{X-Span-Export}
+            ${sys:PID} --- [%15.15t] %-40.40c{1.} : %m%n${sys:LOG_EXCEPTION_CONVERSION_WORD}
+        </Property>
+        <Property name="ELK_LOG_PATTERN">${sys:PID} %c{3.}.%t %m%n</Property>
+        <Property name="ELK_LOG_PATTERN_SIMPLE">%m%n</Property>
+        <Property name="MAX_SIZE">200 MB</Property>
+        <Property name="MAX_NUM">3</Property>
+    </Properties>
+    <Appenders>
+        <Console name="Console" target="SYSTEM_OUT">
+            <PatternLayout pattern="${ELK_LOG_PATTERN_FULL}"/>
+        </Console>
+        <RollingFile name="normal" fileName="logs/${APP}.log" filePattern="logs/${APP}-%i.log">
+            <EfkJsonPatternLayout pattern="${ELK_LOG_PATTERN_FULL}" app="${APP}"/>
+            <Policies>
+                <SizeBasedTriggeringPolicy size="${MAX_SIZE}"/>
+            </Policies>
+            <DefaultRolloverStrategy max="${MAX_NUM}"/>
+        </RollingFile>
+        <RollingFile name="slowsql" fileName="logs/slowsql/${APP}.log" filePattern="logs/slowsql/${APP}-%i.log">
+            <EfkJsonPatternLayout pattern="${ELK_LOG_PATTERN_SIMPLE}" app="${APP}"/>
+            <!--<MarkerFilter marker="慢SQL" onMatch="ACCEPT" onMismatch="DENY"/>-->
+            <Policies>
+                <SizeBasedTriggeringPolicy size="${MAX_SIZE}"/>
+            </Policies>
+            <DefaultRolloverStrategy max="${MAX_NUM}"/>
+        </RollingFile>
+    </Appenders>
+
+    <Loggers>
+        <Root level="INFO">
+            <MarkerFilter marker="慢SQL" onMatch="DENY" onMismatch="ACCEPT"/>
+            <AppenderRef ref="Console"/>
+            <AppenderRef ref="normal"/>
+        </Root>
+        <logger name="com.inspur.tinyframework.datasource" level="debug">
+            <AppenderRef ref="Console"/>
+            <AppenderRef ref="normal"/>
+        </logger>
+        <logger name="com.inspur.tinyframework.datasource" level="debug">
+            <MarkerFilter marker="慢SQL" onMatch="ACCEPT" onMismatch="DENY"/>
+            <AppenderRef ref="Console"/>
+            <AppenderRef ref="slowsql"/>
+        </logger>
+    </Loggers>
+</Configuration>

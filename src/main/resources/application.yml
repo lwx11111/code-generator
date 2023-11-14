@@ -1,0 +1,15 @@
+logging:
+  level:
+    org.example: info
+# 代码生成器配置
+code:
+  # 是否需要生成代码
+  isOpen: true
+  # 模版路径
+  templetGroup: default
+  module: false
+  excludedir: boot
+
+
+
+
