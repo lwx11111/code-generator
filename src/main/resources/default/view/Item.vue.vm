@@ -1,5 +1,6 @@
 <template>
     <el-dialog v-model="data.showDialog"
+               destroy-on-close
             width="90%"
             :title="data.operateTitle">
         <el-card style="border: 1px solid gold;"
@@ -34,7 +35,7 @@
                 </el-row>
 #elseif($columnIndex % 4 == 0)
                 </el-row>
-              <el-row>
+                <el-row>
 #end
 #if(${field.keyFlag})
 #else
@@ -64,7 +65,7 @@
 #set($entryLower=$entity.toLowerCase())
 #set($viewModuleNameLower=$cfg.viewModuleName.toLowerCase())
 <script lang="ts" setup>
-    import Api from '../../api/api_${entryLower}.js'
+    import Api from '@/api/api_${entryLower}.js'
     import { reactive, ref, onMounted, toRefs } from 'vue'
     import { useStore } from "vuex";
     import { useRouter } from 'vue-router'
@@ -131,6 +132,8 @@
         switch (data.type) {
             case 'add':
                 data.operateTitle = '新增'
+                data.showBtn = true
+                data.disabled = false
                 break
             case 'detail':
                 data.operateTitle = '详情'
@@ -139,6 +142,8 @@
                 break
             case 'update':
                 data.operateTitle = '修改'
+                data.showBtn = true
+                data.disabled = false
                 break
         }
 

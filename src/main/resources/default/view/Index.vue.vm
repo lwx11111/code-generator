@@ -185,10 +185,10 @@
 #end
 #end
 <script lang="ts" setup>
-    import Api from '../../api/api_${entryLower}.js'
+    import Api from '@/api/api_${entryLower}.js'
     import ItemDialog from './Item.vue'
     import { reactive, ref, defineProps, toRefs, onMounted} from 'vue'
-    import Upload from "../../utils/oss/upload.vue";
+    import Upload from "@/utils/oss/upload.vue";
     import { useStore } from "vuex";
     import { useRouter } from 'vue-router'
     import {ElMessage, ElMessageBox} from "element-plus";

@@ -74,6 +74,7 @@ public class ${table.controllerName} {
         } catch (Exception e) {
             response.setCode(500);
             response.setMessage(e.getMessage());
+            e.printStackTrace();
         }
         return response;
     }
@@ -90,6 +91,7 @@ public class ${table.controllerName} {
         } catch (Exception e) {
             response.setCode(500);
             response.setMessage(e.getMessage());
+            e.printStackTrace();
         }
         return response;
     }
@@ -106,6 +108,7 @@ public class ${table.controllerName} {
         } catch (Exception e) {
             response.setCode(500);
             response.setMessage(e.getMessage());
+            e.printStackTrace();
         }
         return response;
     }
@@ -122,6 +125,7 @@ public class ${table.controllerName} {
         } catch (Exception e) {
             response.setCode(500);
             response.setMessage(e.getMessage());
+            e.printStackTrace();
         }
         return response;
     }
@@ -136,6 +140,7 @@ public class ${table.controllerName} {
         } catch (Exception e) {
             response.setCode(500);
             response.setMessage(e.getMessage());
+            e.printStackTrace();
         }
         return response;
     }
@@ -170,6 +175,7 @@ public class ${table.controllerName} {
         } catch (Exception e) {
             response.setCode(500);
             response.setMessage(e.getMessage());
+            e.printStackTrace();
         }
         return response;
     }
