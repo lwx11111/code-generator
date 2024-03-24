@@ -198,11 +198,9 @@
 
     // Data
     const data = reactive({
-        context: { componentParent: this },// context: 父对象
         screenHeight: window.innerHeight,// screenHeight:控制高度自适应-页面高度
         otherHeight: 310,// otherHeight:控制高度自适应-表格外的高度
         isSearch: false, // isSearch:控制搜索状态
-        detailUrl: '/${viewModuleNameLower}/${entryLower}/item', // detailUrl:详情页面地址
         selectedRows: {}, // selectedRows:选中行对象
         // formList:搜索条件对象 分页控制对象
         formList: {
@@ -219,13 +217,6 @@
         },
         // tableData:表格数据
         tableData: [],
-        // OperatorLogParam:用于记录日志
-        OperatorLogParam: {
-            operateContent: '',
-            operateFeatures: '',
-            operateState: '',
-            operateType: ''
-        },
         activeName: '1',
         // 分页配置
         pageConfig: {
@@ -242,20 +233,6 @@
     // Mounted
     onMounted(() => {
         getData();
-        // window.onresize = () => {
-        //     return (() => {
-        //         data.screenHeight = window.innerHeight
-        //     })()
-        // }
-
-        // 菜单界面生成时日志记录
-        // const islog = Vue.prototype.$config.ISLOG;
-        // if (true==islog){
-        //     this.OperatorLogParam.operateFeatures = '菜单点击'
-        //     this.OperatorLogParam.operateType = LogType.Query
-        //     this.OperatorLogParam.operateState = '成功'
-        //     OperatorLog.setOperationLog(this.OperatorLogParam)
-        // }
     })
 
     // Methods
@@ -279,14 +256,6 @@
                 data.pageConfig.total = res.data.total
                 data.isSearch = false
             }
-
-            // 日志记录
-            // data.OperatorLogParam.operateContent = JSON.stringify(params)
-            // data.OperatorLogParam.operateFeatures = '查询列表'
-            // data.OperatorLogParam.operateType = LogType.Query
-            // data.OperatorLogParam.operateState = '成功'
-            // OperatorLog.setOperationLog(this.OperatorLogParam)
-
         })
     }
     // 添加记录
@@ -356,13 +325,6 @@
                             message: '删除失败',
                         })
                     }
-
-                    // 日志记录
-                    // this.OperatorLogParam.operateContent = JSON.stringify(dataids)
-                    // this.OperatorLogParam.operateFeatures = '删除记录'
-                    // this.OperatorLogParam.operateType = LogType.Query
-                    // this.OperatorLogParam.operateState = '成功'
-                    // OperatorLog.setOperationLog(this.OperatorLogParam)
                 })
             }).catch(() => {
                 ElMessage({
@@ -468,13 +430,6 @@
                     })
                 }
             })
-
-            // 日志记录
-            // this.OperatorLogParam.operateContent = JSON.stringify(dataids)
-            // this.OperatorLogParam.operateFeatures = '删除记录'
-            // this.OperatorLogParam.operateType = LogType.Query
-            // this.OperatorLogParam.operateState = '成功'
-            // OperatorLog.setOperationLog(this.OperatorLogParam)
         }).catch(() => {
             ElMessage({
                 type: 'info',
