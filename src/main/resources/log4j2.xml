@@ -1,6 +1,6 @@
 <?xml version="1.0" encoding="UTF-8"?>
 
-<Configuration status="OFF" monitorInterval="30" packages="com.inspur.tinyframework.core.log">
+<Configuration status="OFF" monitorInterval="30" packages="org.example.core.log">
     <Properties>
         <Property name="APP">ser-fsp-it</Property>
         <Property name="PID">????</Property>
@@ -42,11 +42,11 @@
             <AppenderRef ref="Console"/>
             <AppenderRef ref="normal"/>
         </Root>
-        <logger name="com.inspur.tinyframework.datasource" level="debug">
+        <logger name="org.example.datasource" level="debug">
             <AppenderRef ref="Console"/>
             <AppenderRef ref="normal"/>
         </logger>
-        <logger name="com.inspur.tinyframework.datasource" level="debug">
+        <logger name="org.example.datasource" level="debug">
             <MarkerFilter marker="慢SQL" onMatch="ACCEPT" onMismatch="DENY"/>
             <AppenderRef ref="Console"/>
             <AppenderRef ref="slowsql"/>
