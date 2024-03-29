@@ -1,11 +1,45 @@
 logging:
   level:
     org.example: info
+
 # 代码生成器配置
 code:
+  dataSource:
+    url: jdbc:mysql://localhost:3306/delivery_system?characterEncoding=utf8&useUnicode=true&useSSL=false&serverTimezone=GMT%2B8&allowPublicKeyRetrieval=true
+    username: root
+    password: lwxMysql
+    driver: com.mysql.cj.jdbc.Driver
+    dbType: mysql
+  global:
+    outputDir: //D:/work
+    author: lwx
+    swagger2: true
+    entityName: '%s'
+    mapperName: '%sDao'
+    xmlName: '%sMapper'
+    serviceName: 'I%sService'
+    serviceImplName: '%sServiceImpl'
+    controllerName: '%sController'
+  package:
+    parentName: org.example
+    controllerName: controller
+    serviceName: service
+    serviceImplName: service.impl
+    entityName: domain
+    mapperName: dao
+    xmlName: mapper
+  strategy:
+    #表名,多个用逗号隔开，为空，生成所有的表,表名一定得大写
+    tableNames: cart,address
+    #是否使用lombok
+    entityLombokModel: true
+    #是否使用restful风格接口
+    restControllerStyle: true
+
   # 是否需要生成代码
   isOpen: true
   # 模版路径
+  templatePath: templates
   templetGroup: default
   module: false
   excludedir: boot

@@ -1,0 +1,21 @@
+#set($entryLower=$entity.toLowerCase())
+const ${entity}Item = () => import('../views/${entryLower}/Item.vue')
+const ${entity}Index = () => import('../views/${entryLower}/Index.vue')
+
+export default function (router) {
+  router.addRoutes([
+    {
+      path: '/${viewModuleNameLower}/${entryLower}/index',
+      component: ${entity}Index,
+      name: '${entity}Index'
+    },
+    {
+      path: '/${viewModuleNameLower}/${entryLower}/item',
+      component: ${entity}Item,
+      name: '${entity}Item',
+      meta: {
+        rootPaths: ['/${viewModuleNameLower}/${entryLower}/index']
+      }
+    }
+  ])
+}

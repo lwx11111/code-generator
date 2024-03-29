@@ -1,5 +1,0 @@
-{
-  "id": "2-3",
-  "label": "样例页面",
-  "url": "/${cfg.viewModuleName}/${entity}/index"
-}

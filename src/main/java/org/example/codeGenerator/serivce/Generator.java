@@ -10,14 +10,10 @@ import com.baomidou.mybatisplus.generator.config.po.TableField;
 import com.baomidou.mybatisplus.generator.config.po.TableInfo;
 import com.baomidou.mybatisplus.generator.config.rules.DateType;
 import com.baomidou.mybatisplus.generator.config.rules.NamingStrategy;
-import jakarta.annotation.PostConstruct;
 import lombok.extern.slf4j.Slf4j;
-import org.example.codeGenerator.config.BaseConfig;
-import org.example.codeGenerator.config.GeraltorConfig;
-import org.example.codeGenerator.config.ThirdPartyToolsConfig;
-import org.example.codeGenerator.domain.TempletItem;
+import org.example.codeGenerator.config.*;
+import org.example.codeGenerator.domain.TemplateItem;
 import org.example.codeGenerator.util.ConsoleUtil;
-import org.example.codeGenerator.util.StringHelper;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.stereotype.Service;
@@ -33,189 +29,198 @@ import java.util.Map;
 @Service
 @Slf4j
 public class Generator {
-    @Autowired
-    BaseConfig baseConfig;
 
     @Autowired
-    ThirdPartyToolsConfig toolsConfig;
-
-    @Value("${code.templetGroup}")
-    String templet;
+    private TempletService templetService;
 
     @Autowired
-    GeraltorConfig geraltorConfig;
+    private DataSourceProperties dataSourceProperties;
 
     @Autowired
-    TempletService templetService;
+    private GlobalProperties globalProperties;
 
-    @Value("${code.module}")
-    private boolean isNewModule;
+    @Autowired
+    private PackageProperties packageProperties;
 
-    @Value("${code.excludedir}")
-    private String excludedir;
+    @Autowired
+    private StrategyProperties strategyProperties;
 
-    private String VIEW = "view";
+
+    /**
+     * 模版路径
+     */
+    @Value("${code.templatePath}")
+    private String templatePath;
+
+    /**
+     * 模版包名
+     */
     private String SERVICE = "service";
-    private String CLOUD = "cloud";
 
-    private String[] excludeDirArray;
-
-    @PostConstruct
-    private void init() {
-        if (excludedir == null || "".equalsIgnoreCase(excludedir.trim())) {
-            return;
-        }
-        excludeDirArray = excludedir.split(",");
-    }
-
-    private boolean isExclude(String relPath) {
-        if (excludeDirArray == null || excludedir.length() < 1) {
-            return false;
-        }
-        for (String dir : excludeDirArray) {
-            if (relPath.startsWith(String.format("/%s", dir.trim()))) {
-                return true;
-            }
-        }
-        return false;
+    /**
+     * 获取模版实际路径
+     * @param templateType 模版包名
+     * @param templateName 模版名
+     * @return
+     */
+    private String getTemplate(String templateType, String templateName) {
+        return String.format("/%s/%s/%s", templatePath, templateType, templateName);
     }
 
     /**
-     * 数据连接信息
+     * 数据源配置
      * @return DataSourceConfig
      */
     private DataSourceConfig dataSourceConfig() {
         //获取配置环境信息
-        String datasource = geraltorConfig.getValue("datasource");
-        datasource = datasource == null ? "dev" : datasource.trim();
-        //数据库配置
+//        String datasource = dataSourceProperties.getActive(
+//        datasource = datasource == null ? "dev" : datasource.trim();
         return new DataSourceConfig()
-                .setDbType(DbType.getDbType(toolsConfig.getValue( "datasource_dbType")))
-                .setUrl(toolsConfig.getValue(datasource + "_datasource_url"))
-                .setUsername(toolsConfig.getValue(datasource + "_datasource_username"))
-                .setPassword(toolsConfig.getValue(datasource + "_datasource_password"))
-                .setDriverName(toolsConfig.getValue( "datasource_driver"));
-
-    }
-
-    // 配置
-    private GlobalConfig globalConfig() {
-        return new GlobalConfig()
-                .setAuthor(baseConfig.getValue("AUTHOR"))
-                .setOutputDir(String.format("%s/%s", geraltorConfig.getValue("outputDir"), geraltorConfig.getValue("moduleName")))
-                .setFileOverride(true) // 是否覆盖已有文件
-                .setOpen(false) // 是否打开输出目录
-                .setDateType(DateType.TIME_PACK) // 时间采用java 8，（操作工具类：JavaLib => DateTimeUtils）
-                .setActiveRecord(true)// 不需要ActiveRecord特性的请改为false
-                .setEnableCache(false)// XML 二级缓存
-                .setBaseResultMap(false)// XML ResultMap
-                .setBaseColumnList(false)// XML columList
-                .setKotlin(false) //是否生成 kotlin 代码
-                // 自定义文件命名，注意 %s 会自动填充表实体属性！
-                .setEntityName(baseConfig.getValue("FILE_NAME_MODEL"))
-                .setMapperName(baseConfig.getValue("ILE_NAME_DAO"))
-                .setXmlName(baseConfig.getValue("FILE_NAME_XML"))
-                .setServiceName(baseConfig.getValue("FILE_NAME_SERVICE"))
-                .setServiceImplName(baseConfig.getValue("FILE_NAME_SERVICE_IMPL"))
-                .setControllerName(baseConfig.getValue("FILE_NAME_CONTROLLER"))
-                .setIdType(IdType.ASSIGN_ID) // 主键类型
-                .setSwagger2("true".equalsIgnoreCase(baseConfig.getValue("swagger2"))) // model swagger2
-                ;
-    }
-
-    // 表名策略配置
-    private StrategyConfig strategyConfig() {
-        String[] tableNames = null;
-
-        if (geraltorConfig.getTableNames().length == 1) {
-            if (geraltorConfig.getTableNames()[0].trim() != null && !"".equalsIgnoreCase(geraltorConfig.getTableNames()[0].trim())) {
-                log.warn("tableNames is not null");
-                tableNames = geraltorConfig.getTableNames();
-            }
-        }
-
-        return new StrategyConfig()
-                .setCapitalMode(true) // 全局大写命名 ORACLE 注意
-                .setSkipView(false) // 是否跳过视图
-                //.setDbColumnUnderline(true)
-                .setTablePrefix(geraltorConfig.getTablePrefixes())// 此处可以修改为您的表前缀(数组)
-                .setFieldPrefix(geraltorConfig.getFieldPrefixes()) // 字段前缀
-                .setNaming(NamingStrategy.underline_to_camel) // 表名生成策略
-                .setInclude(tableNames)//修改替换成你需要的表名，多个表名传数组
-                //.setExclude(new String[]{"test"}) // 排除生成的表
-                .setEntityLombokModel("true".equalsIgnoreCase(baseConfig.getValue("entityLombokModel"))) // lombok实体
-                .setEntityBuilderModel(true) // 【实体】是否为构建者模型（默认 false）
-                .setEntityColumnConstant(false) // 【实体】是否生成字段常量（默认 false）// 可通过常量名获取数据库字段名 // 3.x支持lambda表达式
-//                .setLogicDeleteFieldName(baseConfig.FIELD_LOGIC_DELETE_NAME) // 逻辑删除属性名称
-                .setRestControllerStyle("true".equalsIgnoreCase(baseConfig.getValue("restControllerStyle")))
-                .setEntityTableFieldAnnotationEnable(true)
-                //.entityTableFieldAnnotationEnable(true)
-                ;
-    }
-
-    // 包信息配置
-    private PackageConfig packageConfig() {
-        return new PackageConfig()
-                .setParent(geraltorConfig.getValue("packageName"))
-                .setController(baseConfig.getValue("PACKAGE_NAME_CONTROLLER"))
-                .setEntity(baseConfig.getValue("PACKAGE_NAME_MODEL"))
-                .setMapper(baseConfig.getValue("PACKAGE_NAME_DAO"))
-                .setXml(baseConfig.getValue("PACKAGE_NAME_XML"))
-                .setService(baseConfig.getValue("PACKAGE_NAME_SERVICE"))
-                .setServiceImpl(baseConfig.getValue("PACKAGE_NAME_SERVICE_IMPL"))
-//                .setModuleName(geraltorConfig.moduleName)
-                ;
+                .setDbType(DbType.getDbType(dataSourceProperties.getDbType()))
+                .setUrl(dataSourceProperties.getUrl())
+                .setUsername(dataSourceProperties.getUsername())
+                .setPassword(dataSourceProperties.getPassword())
+                .setDriverName(dataSourceProperties.getDriver());
     }
 
     /**
-     * 自定义配置 前端配置
-     * @param packageConfig
+     * 全局策略配置
      * @return
      */
-    private InjectionConfig injectionConfig(final PackageConfig packageConfig) {
+    private GlobalConfig globalConfig() {
+        return new GlobalConfig()
+                // 输出路径
+                .setOutputDir(globalProperties.getOutputDir())
+                // 是否覆盖已有文件
+                .setFileOverride(true)
+                // 是否打开输出目录
+                .setOpen(true)
+                // XML 二级缓存
+                .setEnableCache(false)
+                // 开发人员
+                .setAuthor(globalProperties.getAuthor())
+                //是否生成 kotlin 代码
+                .setKotlin(false)
+                // 是否生成swagger2
+                .setSwagger2("true".equalsIgnoreCase(globalProperties.getSwagger2()))
+                // 是否需要ActiveRecord
+                .setActiveRecord(true)
+                // XML ResultMap
+                .setBaseResultMap(false)
+                // XML columList
+                .setBaseColumnList(false)
+                // 时间类型
+                .setDateType(DateType.TIME_PACK)
+                // 自定义文件命名，注意 %s 会自动填充表实体属性！
+                .setEntityName(globalProperties.getEntityName())
+                .setMapperName(globalProperties.getMapperName())
+                .setXmlName(globalProperties.getXmlName())
+                .setServiceName(globalProperties.getServiceName())
+                .setServiceImplName(globalProperties.getServiceImplName())
+                .setControllerName(globalProperties.getControllerName())
+                // 主键类型
+                .setIdType(IdType.ASSIGN_ID);
+    }
+
+    /**
+     * 自定义模板
+     * @return
+     */
+    private TemplateConfig templateConfigConfig() {
+        return new TemplateConfig()
+                // Java实体
+                .setEntity(this.getTemplate(SERVICE, "entity.java"))
+                // Kotin实体
+                .setEntityKt(this.getTemplate(SERVICE, "entity.kt"))
+                .setService(this.getTemplate(SERVICE, "service.java"))
+                .setServiceImpl(this.getTemplate(SERVICE, "serviceImpl.java"))
+                .setMapper(this.getTemplate(SERVICE, "mapper.java"))
+                .setXml(this.getTemplate(SERVICE, "mapper.xml"))
+                .setController(this.getTemplate(SERVICE, "controller.java"));
+    }
+
+    /**
+     * 包信息（目录名字）配置
+     * @return
+     */
+    private PackageConfig packageConfig() {
+        return new PackageConfig()
+                // 父包名。如果为空，将下面子包名必须写全部， 否则就只需写子包名
+                .setParent(packageProperties.getParentName())
+                .setController(packageProperties.getControllerName())
+                .setEntity(packageProperties.getEntityName())
+                .setMapper(packageProperties.getMapperName())
+                .setXml(packageProperties.getXmlName())
+                .setService(packageProperties.getServiceName())
+                .setServiceImpl(packageProperties.getServiceImplName());
+    }
+
+    /**
+     * 数据库表配置
+     * @return
+     */
+    private StrategyConfig strategyConfig() {
+        String[] tableNames = null;
+
+        // 处理特定表名
+        if (strategyProperties.getTableNames().trim() != null && !"".equals(strategyProperties.getTableNames().trim())) {
+            // 以,分割
+            tableNames = strategyProperties.getTableNames().split(",");
+            System.out.println(tableNames);
+        }
+
+        return new StrategyConfig()
+                // 全局大写命名 ORACLE 注意
+                .setCapitalMode(true)
+                // 是否跳过视图
+                .setSkipView(false)
+                // 数据库表映射到实体的命名策略
+                .setNaming(NamingStrategy.underline_to_camel)
+                // 需要包含的表名，多个表名传数组
+                .setInclude(tableNames)
+                // 【实体】是否生成字段常量（默认 false）// 可通过常量名获取数据库字段名 // 3.x支持lambda表达式
+                .setEntityColumnConstant(false)
+                // lombok实体
+                .setEntityLombokModel("true".equalsIgnoreCase(strategyProperties.getEntityLombokModel()))
+                // 【实体】是否为构建者模型（默认 false）
+                .setEntityBuilderModel(true)
+                //生成 @RestController 控制器
+                .setRestControllerStyle("true".equalsIgnoreCase(strategyProperties.getRestControllerStyle()))
+                // 是否生成实体时，生成字段注解
+                .setEntityTableFieldAnnotationEnable(true);
+    }
+
+
+    /**
+     * 自定义属性注入 自定义配置 前端配置
+     * @return
+     */
+    private InjectionConfig injectionConfig() {
         InjectionConfig injectionConfig = new InjectionConfig() {
+
+            /**
+             * 初始化map，用于模板中的变量替换
+             */
             @Override
             public void initMap() {
-                // to do nothing
                 Map<String, Object> map = new HashMap<>();
-                map.putAll(geraltorConfig.getConfigMap());
-                map.putAll(baseConfig.getConfigMap());
-                map.putAll(toolsConfig.getConfigMap());
-                map.put("appName", geraltorConfig.getValue("moduleName").toLowerCase());
-                map.put("varDescriptor", "$");
-                map.put("s", "$");
-                map.put("a", "@");
-                map.put("appModule", geraltorConfig.getValue("moduleName").toLowerCase());
-                map.put("appVersion", geraltorConfig.getValue("moduleVersion"));
-                String appClassName = StringHelper.toCamelCase(geraltorConfig.getValue("moduleName"), true) + "App";
-                map.put("appClassName", appClassName);
-                String packagePath = geraltorConfig.getValue("packageName").replace('.', '/');
-                map.put("packagePath", packagePath);
-                map.put("dbType", toolsConfig.getValue("datasource_dbType").trim().toLowerCase());
                 this.setMap(map);
             }
         };
 
-        List<TempletItem> templetItems = templetService.getTemplets();
-        if (templetItems == null || templetItems.size() < 1) {
+        // 自定义模板
+        List<TemplateItem> templateItems = templetService.listTemplateItems();
+        if (templateItems == null || templateItems.size() < 1) {
             return injectionConfig;
         }
 
         List<FileOutConfig> fileOutConfigList = new ArrayList<FileOutConfig>();
         injectionConfig.setFileOutConfigList(fileOutConfigList);
-        for (TempletItem item : templetItems) {
-            String templet = templetService.getTempletPath(item);
-            if (!isNewModule) {
-                if ("cloud".equalsIgnoreCase(item.getRelativePath())
-                        || "boot".equalsIgnoreCase(item.getRelativePath())) {
-                    continue;
-                }
-            }
-            if (isExclude(item.getRelativePath())) {
-                continue;
-            }
 
-            fileOutConfigList.add(new FileOutConfig(templet) {
+        for (TemplateItem item : templateItems) {
+            String templatePath = templetService.getTemplateItemPath(item);
+
+            fileOutConfigList.add(new FileOutConfig(templatePath) {
                 @Override
                 public String outputFile(TableInfo tableInfo) {
                     injectionConfig.getMap().put("entity", tableInfo.getEntityName());
@@ -250,8 +255,6 @@ public class Generator {
             log.info("not right set primary key，random set field [ {} ] as primary", fields.get(0).getName());
             fields.get(0).setKeyFlag(true);
         }
-
-
     }
 
     private int getKeyFieldNum(List<TableField> fields, String tableName) {
@@ -264,7 +267,6 @@ public class Generator {
         buffer.append(String.format("please select the field num between 0 and %s : ", fields.size() - 1));
         for (int loopNum = 0; loopNum < 3; loopNum++) {
             String ret = ConsoleUtil.readConsole(buffer.toString());
-//            log.info("read from console value: {}", ret);
             int fildNum = NumberUtil.parseInt(ret);
             if (fildNum >= 0 && fildNum < fields.size()) {
                 return fildNum;
@@ -274,34 +276,16 @@ public class Generator {
         return -1;
     }
 
-    private String getTemplet(String templetType, String templetName) {
-        return String.format("/%s/%s/%s", templet, templetType, templetName);
-    }
-
-    private TemplateConfig templateConfigConfig() {
-        TemplateConfig templateConfig = new TemplateConfig();
-        templateConfig.setController(getTemplet(SERVICE, "controller.java"));
-        templateConfig.setEntity(getTemplet(SERVICE, "entity.java"));
-        templateConfig.setEntityKt(getTemplet(SERVICE, "entity.kt"));
-        templateConfig.setMapper(getTemplet(SERVICE, "mapper.java"));
-        templateConfig.setXml(getTemplet(SERVICE, "mapper.xml"));
-        templateConfig.setService(getTemplet(SERVICE, "service.java"));
-        templateConfig.setServiceImpl(getTemplet(SERVICE, "serviceImpl.java"));
-        return templateConfig;
-    }
 
     /**
      * 执行器,生成代码
      */
     public void execute() {
-        geraltorConfig.getGenrator().put("moduleName", geraltorConfig.getValue("moduleName").toLowerCase());
-//        geraltorConfig.getGenrator().put("viewModuleName", geraltorConfig.getValue("viewModuleName").toLowerCase());
-
         GlobalConfig globalConfig = globalConfig();
         DataSourceConfig dataSourceConfig = dataSourceConfig();
         StrategyConfig strategyConfig = strategyConfig();
         PackageConfig packageConfig = packageConfig();
-        InjectionConfig injectionConfig = injectionConfig(packageConfig);
+        InjectionConfig injectionConfig = injectionConfig();
         TemplateConfig templateConfig = templateConfigConfig();
 
         AutoGenerator autoGenerator = new AutoGenerator()

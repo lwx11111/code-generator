@@ -1,9 +1,4 @@
 <?xml version="1.0" encoding="UTF-8"?>
-<!--
-  ~ http://www.inspur.com
-  ~
-  ~ Copyright (c) 2019 . 软件版权归浪潮软件集团-天元通信信息系统有限公司所有
-  -->
 
 <Configuration status="OFF" monitorInterval="30" packages="com.inspur.tinyframework.core.log">
     <Properties>
